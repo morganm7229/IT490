@@ -1,0 +1,70 @@
+<html>
+<script>
+
+function HandleLoginResponse(response)
+{
+//	var text = JSON.parse(response);
+	document.getElementById("textResponse").innerHTML = "<br>"+response+"<p>";	
+//	document.getElementById("textResponse").innerHTML = "response: "+text+"<p>";
+}
+
+function SendLoginRequest()
+{
+	username = document.getElementById("username").value;
+	password = document.getElementById("password").value;	
+
+	var request = new XMLHttpRequest();
+	request.open("POST","/../login.php",true);
+	request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+
+	request.onreadystatechange= function ()
+	{
+		
+		if ((this.readyState == 4)&&(this.status == 200))
+		{
+			console.log(this.responseText);
+			HandleLoginResponse(this.responseText);
+		}		
+	}
+	request.send("type=login&uname="+username+"&pword="+password);
+}
+
+function SendLogoutRequest()
+{
+	var request = new XMLHttpRequest();
+	request.open("POST", "/../logout.php", true);
+	request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+	request.onreadystatechange = function()
+	{
+		if ((this.readyState == 4)&&(this.status == 200))
+		{
+			HandleLoginResponse(this.responseText);
+		}
+	}
+	request.send("type=logout");
+}
+</script>
+
+<h1>login page</h1>
+<body>
+<form action="javascript:SendLoginRequest()">
+	<label for="username">Username:</label><br>
+	<input type="text" id="username" name="username"><br>
+	<label for="password">Password:</label><br>
+	<input type="password" id="password" name="password"><br><br>
+	<input type="submit" value="Login">
+</form>
+<form action="javascript:SendLogoutRequest()">
+	<input type="submit" value="Logout">
+</form>
+
+<div id="textResponse">
+awaiting response
+</div>
+<script>
+//SendLoginRequest();
+//SendLogoutRequest();
+</script>
+</body>
+</html>
