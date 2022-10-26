@@ -1,39 +1,71 @@
 #!/usr/bin/php
+
 <?php
+function getFriends($accountID)
+{
+ $db = new mysqli('localhost','database','doogis123','steamTag');
+ if ($db->errno != 0)
+ {
+   echo "failed to connect to database: ". $db->error . PHP_EOL;
+   exit(0);
+ }
+ echo "successfully connected to database".PHP_EOL;
+
+ $query = "SELECT friends FROM accounts WHERE accID=" . $accountID . ";";
+
+ $response = $db->query($query);
+ if ($db->errno != 0)
+ {
+   echo "failed to execute query:".PHP_EOL;
+   echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+   exit(0);
+ }
+
+ return mysqli_fetch_row($response)[0];
+}
+
+error_reporting(E_ALL);
+ini_set('display_errors', 'On');
 require_once('path.inc');
 require_once('get_host_info.inc');
 require_once('rabbitMQLib.inc');
-$database_details = parse_ini_file("database.ini");
-$db = new mysqli($database_details['dbIP'],$database_details['dbUser'],$database_details['dbPassword'],$database_details['dbName']);
 
 function doLogin($username,$password)
 {
+    $mydb = new mysqli('192.168.191.236','rabbit','eDzHu9pK','users');
+    // db pass eDzHu9pK
+    if ($mydb->errno != 0)
+    {
+            echo "failed to connect to database: ". $mydb->error . PHP_EOL;
+            exit(0);
+    }
+    
+    echo "successfully connected to database".PHP_EOL;
+    
+    $query = "SELECT * FROM users WHERE username='$username' AND password='$password';";
+    
+    $response = $mydb->query($query);
+    if ($mydb->errno != 0)
+    {
+            echo "failed to execute query:".PHP_EOL;
+            echo __FILE__.':'.__LINE__.":error: ".$mydb->error.PHP_EOL;
+            exit(0);
+    }
+    
+    $numrows = mysqli_num_rows($response);
+    
+    if($numrows != 0)
+    {
+    echo "Auth";
+        return "Auth";
+    }else{
+      return 0;
+    }
     // lookup username in databas
     // check password
+    echo "doLogin()";
     return true;
     //return false if not valid
-}
-
-function getFriends($accountID)
-{
-  if ($db->errno != 0)
-  {
-    echo "failed to connect to database: ". $db->error . PHP_EOL;
-    exit(0);
-  }
-  echo "successfully connected to database".PHP_EOL;
-
-  $query = "SELECT friends FROM accounts WHERE accID=" . $accountID . ";";
-
-  $response = $db->query($query);
-  if ($db->errno != 0)
-  {
-    echo "failed to execute query:".PHP_EOL;
-    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
-    exit(0);
-  }
-  echo $response;
-  return $response;
 }
 
 function requestProcessor($request)
@@ -60,11 +92,6 @@ $server = new rabbitMQServer("testRabbitMQ.ini","testServer");
 
 echo "testRabbitMQServer BEGIN".PHP_EOL;
 $server->process_requests('requestProcessor');
-$array = [
-  "type" => "get_friends",
-  "userID" => "1",
-];
 echo "testRabbitMQServer END".PHP_EOL;
 exit();
 ?>
-

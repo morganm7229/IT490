@@ -15,10 +15,11 @@ else
 }
 
 $request = array();
-$request['type'] = "Login";
+$request['type'] = "get_friends";
 $request['username'] = "steve";
 $request['password'] = "password";
 $request['message'] = $msg;
+$request['accountID'] = 1;
 $response = $client->send_request($request);
 //$response = $client->publish($request);
 
