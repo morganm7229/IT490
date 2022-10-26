@@ -3,6 +3,8 @@
 require_once('path.inc');
 require_once('get_host_info.inc');
 require_once('rabbitMQLib.inc');
+$database_details = parse_ini_file("database.ini");
+$db = new mysqli($database_details['dbIP'],$database_details['dbUser'],$database_details['dbPassword'],$database_details['dbName']);
 
 function doLogin($username,$password)
 {
@@ -11,7 +13,28 @@ function doLogin($username,$password)
     return true;
     //return false if not valid
 }
-//test2
+
+function getFriends($accountID)
+{
+  if ($db->errno != 0)
+  {
+    echo "failed to connect to database: ". $db->error . PHP_EOL;
+    exit(0);
+  }
+  echo "successfully connected to database".PHP_EOL;
+
+  $query = "SELECT friends FROM accounts WHERE accID=" . $accountID . ";";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+  return $response;
+}
+
 function requestProcessor($request)
 {
   echo "received request".PHP_EOL;
@@ -26,6 +49,8 @@ function requestProcessor($request)
       return doLogin($request['username'],$request['password']);
     case "validate_session":
       return doValidate($request['sessionId']);
+    case "get_friends":
+      return getFriends($request['accountID']);
   }
   return array("returnCode" => '0', 'message'=>"Server received request and processed");
 }
