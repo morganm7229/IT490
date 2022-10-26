@@ -32,6 +32,7 @@ function getFriends($accountID)
     echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
     exit(0);
   }
+  echo $response;
   return $response;
 }
 
@@ -59,6 +60,10 @@ $server = new rabbitMQServer("testRabbitMQ.ini","testServer");
 
 echo "testRabbitMQServer BEGIN".PHP_EOL;
 $server->process_requests('requestProcessor');
+$array = [
+  "type" => "get_friends",
+  "userID" => "1",
+];
 echo "testRabbitMQServer END".PHP_EOL;
 exit();
 ?>
