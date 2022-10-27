@@ -15,7 +15,7 @@ else
 }
 
 $request = array();
-$request['type'] = "get_friends";
+$request['type'] = "get_user_data";
 $request['username'] = "steve";
 $request['password'] = "password";
 $request['message'] = $msg;
