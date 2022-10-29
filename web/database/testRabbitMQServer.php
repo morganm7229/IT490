@@ -104,12 +104,16 @@ function requestProcessor($request)
   {
     case "login":
       return doLogin($request['username'],$request['password']);
+      break;
     case "validate_session":
       return doValidate($request['sessionId']);
+      break;
     case "get_friends":
       return getFriends($request['accountID']);
+      break;
     case "get_user_data":
       return getUserData($request['accountID']);
+      break;
   }
   return array("returnCode" => '0', 'message'=>"Server received request and processed");
 }
