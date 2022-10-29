@@ -34,7 +34,7 @@ function getFriends($accountID)
 function getUserData($accountID)
 {
   global $db;
-  $query = "SELECT accid, name, lifetimePoints, gamesWon, publicProfile, publicFriends, publicAchievements, highestScore, friends, achievements, gamesPlayed FROM accounts WHERE accID=" . $accountID . ";";
+  $query = "SELECT accid, name, lifetimePoints, gamesWon, publicProfile, publicFriends, publicAchievements, highestScore, gamesPlayed FROM accounts WHERE accID=" . $accountID . ";";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -47,6 +47,54 @@ function getUserData($accountID)
   return mysqli_fetch_row($response);
 }
 
+function getUsername($accountID)
+{
+  global $db;
+  $query = "SELECT name FROM accounts WHERE accID=" . $accountID . ";";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+
+  return mysqli_fetch_row($response);
+}
+
+function getID($username)
+{
+  global $db;
+  $query = "SELECT accID FROM accounts WHERE accID=" . $username . ";";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+
+  return mysqli_fetch_row($response);
+}
+
+function newUser($username, $password, $email)
+{
+  global $db;
+  $query = "INSERT INTO accounts (name, lifetimePoints, gamesWon, publicProfile, publicFriends, publicAchievements, email, password, highestScore, gamesPlayed) VALUES ('" . $username . "', 0, 0, 0, 0, 0, '" . $email . "', '" . $password . "', 0, 0);";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+
+  return "User created";
+}
+
 error_reporting(E_ALL);
 ini_set('display_errors', 'On');
 require_once('path.inc');
@@ -55,23 +103,17 @@ require_once('rabbitMQLib.inc');
 
 function doLogin($username,$password)
 {
-    $mydb = new mysqli('192.168.191.236','rabbit','eDzHu9pK','users');
-    // db pass eDzHu9pK
-    if ($mydb->errno != 0)
-    {
-            echo "failed to connect to database: ". $mydb->error . PHP_EOL;
-            exit(0);
-    }
+    global $db;
     
     echo "successfully connected to database".PHP_EOL;
     
     $query = "SELECT * FROM users WHERE username='$username' AND password='$password';";
     
-    $response = $mydb->query($query);
-    if ($mydb->errno != 0)
+    $response = $db->query($query);
+    if ($db->errno != 0)
     {
             echo "failed to execute query:".PHP_EOL;
-            echo __FILE__.':'.__LINE__.":error: ".$mydb->error.PHP_EOL;
+            echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
             exit(0);
     }
     
@@ -113,6 +155,15 @@ function requestProcessor($request)
       break;
     case "get_user_data":
       return getUserData($request['accountID']);
+      break;
+    case "get_username_from_id":
+      return getUsername($request['accountID']);
+      break;
+    case "get_id":
+      return getID($request['username']);
+      break;
+    case "new_user":
+      return newUser($request['username'], $request['password'], $request['email']);
       break;
   }
   return array("returnCode" => '0', 'message'=>"Server received request and processed");

@@ -15,9 +15,10 @@ else
 }
 
 $request = array();
-$request['type'] = "get_user_data";
-$request['username'] = "steve";
-$request['password'] = "password";
+$request['type'] = "new_user";
+$request['username'] = "Steve";
+$request['password'] = "newTest";
+$request['email'] = "steve@steve.steve";
 $request['message'] = $msg;
 $request['accountID'] = 1;
 $response = $client->send_request($request);
