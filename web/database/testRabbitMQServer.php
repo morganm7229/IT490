@@ -18,7 +18,7 @@ echo "successfully connected to database".PHP_EOL;
 function getFriends($accountID)
 {
   global $db;
-  $query = "SELECT friends FROM accounts WHERE accID=" . $accountID . ";";
+  $query = "SELECT friendID FROM friends WHERE accID=" . $accountID . ";";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -95,6 +95,41 @@ function newUser($username, $password, $email)
   return "User created";
 }
 
+function newSteamGame($steamGame)
+{
+  global $db;
+  $query = "INSERT INTO steamGames (steamID, type, name, detailedDescription, shortDescription, headerImage, website, genres, categories, releaseDate, background, mature) VALUES
+   (" . $steamGame['steam_appid'] . ", '" . $steamGame['type'] . "', '" . $steamGame['name'] . "', '" . $steamGame['detailed_description'] . "', '" . $steamGame['short_description'] . "', '"
+   . $steamGame['header_image'] . "', '" . $steamGame['website'] . "', '" . $steamGame['genres'] . "', '" . $steamGame['categories'] . "', '" . $steamGame['release_date'] . "', '" 
+   . $steamGame['background'] . "', " . $steamGame['mature'] . ");";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+
+  return "Steam Game Data created";
+}
+
+function getSteamGame($steamID)
+{
+  global $db;
+  $query = "SELECT * FROM steamGames WHERE steamID=" . $steamID . ";";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+
+  return mysqli_fetch_row($response);
+}
+
 error_reporting(E_ALL);
 ini_set('display_errors', 'On');
 require_once('path.inc');
@@ -164,6 +199,12 @@ function requestProcessor($request)
       break;
     case "new_user":
       return newUser($request['username'], $request['password'], $request['email']);
+      break;
+    case "new_steam_game":
+      return newSteamGame($request['steamGame']);
+      break;
+    case "get_steam_game":
+      return getSteamGame($request['steamID']);
       break;
   }
   return array("returnCode" => '0', 'message'=>"Server received request and processed");
