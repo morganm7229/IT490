@@ -15,8 +15,9 @@ else
 }
 
 $request = array();
-$request['type'] = "lobby_add";
-$request['lobby_id'] = 6948;
+$request['type'] = "lobby_update_status";
+$request['lobby_id'] = 6099;
+$request['status'] = 0;
 $request['username'] = "Steve";
 $request['password'] = "newTest";
 $request['email'] = "steve@steve.steve";

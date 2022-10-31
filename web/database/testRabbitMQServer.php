@@ -211,6 +211,22 @@ function getSteamGame($steam_id)
   return mysqli_fetch_row($response);
 }
 
+function updateStatus($lobby_id, $status)
+{
+  global $db;
+  $query = "UPDATE lobbies SET status = " . $status . " WHERE lobbyID = " . $lobby_id . ";";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+
+  return "" . $lobby_id . " successfully changed to status " . $status . "";
+}
+
 error_reporting(E_ALL);
 ini_set('display_errors', 'On');
 require_once('path.inc');
