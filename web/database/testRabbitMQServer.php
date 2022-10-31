@@ -28,7 +28,7 @@ function getFriends($accountID)
     exit(0);
   }
 
-  return mysqli_fetch_row($response)[0];
+  return mysqli_fetch_all($response)[0];
 }
 
 function getUserData($accountID)
