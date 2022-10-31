@@ -31,6 +31,22 @@ function getFriends($accountID)
   return mysqli_fetch_all($response)[0];
 }
 
+function getAchievements($accountID)
+{
+  global $db;
+  $query = "SELECT achievement FROM playerAchievements WHERE accID=" . $accountID . ";";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+
+  return mysqli_fetch_all($response)[0];
+}
+
 function getUserData($accountID)
 {
   global $db;
@@ -226,7 +242,7 @@ function requestProcessor($request)
     case "get_username_from_id":
       return getUsername($request['accountID']);
       break;
-    case "get_id":
+    case "get_account_id":
       return getID($request['username']);
       break;
     case "new_user":
@@ -243,6 +259,9 @@ function requestProcessor($request)
       break;
     case "add_achievement":
       return addAchievement($request['username'], $request['achievement']);
+      break;
+    case "get_achievements":
+      return getAchievements($request['accountID']);
       break;
   }
   return array("returnCode" => '0', 'message'=>"Server received request and processed");
