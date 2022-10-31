@@ -114,6 +114,38 @@ function newSteamGame($steamGame)
   return "Steam Game Data created";
 }
 
+function addFriend($username, $friendUsername)
+{
+  global $db;
+  $query = "INSERT INTO friends (username, friendUsername) VALUES ('" . $username . "', '" . $friendUsername . "');";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+
+  return "Friend Added";
+}
+
+function addAchievement($username, $achievement)
+{
+  global $db;
+  $query = "INSERT INTO playerAchievements (username, achievement) VALUES ('" . $username . "', '" . $achievement . "');";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+
+  return "Achievement Added";
+}
+
 function getSteamGame($steamID)
 {
   global $db;
@@ -205,6 +237,12 @@ function requestProcessor($request)
       break;
     case "get_steam_game":
       return getSteamGame($request['steamID']);
+      break;
+    case "add_friend":
+      return addFriend($request['username'], $request['friendUsername']);
+      break;
+    case "add_achievement":
+      return addAchievement($request['username'], $request['achievement']);
       break;
   }
   return array("returnCode" => '0', 'message'=>"Server received request and processed");
