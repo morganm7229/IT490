@@ -15,10 +15,10 @@ if ($db->errno != 0)
 }
 echo "successfully connected to database".PHP_EOL;
 
-function getFriends($accountID)
+function getFriends($user_id)
 {
   global $db;
-  $query = "SELECT friendID FROM friends WHERE accID=" . $accountID . ";";
+  $query = "SELECT friendID FROM friends WHERE accID=" . $user_id . ";";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -31,10 +31,10 @@ function getFriends($accountID)
   return mysqli_fetch_all($response)[0];
 }
 
-function getAchievements($accountID)
+function getAchievements($user_id)
 {
   global $db;
-  $query = "SELECT achievement FROM playerAchievements WHERE accID=" . $accountID . ";";
+  $query = "SELECT achievement FROM playerAchievements WHERE accID=" . $user_id . ";";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -47,10 +47,10 @@ function getAchievements($accountID)
   return mysqli_fetch_all($response)[0];
 }
 
-function getUserData($accountID)
+function getUserData($user_id)
 {
   global $db;
-  $query = "SELECT accid, name, lifetimePoints, gamesWon, publicProfile, publicFriends, publicAchievements, highestScore, gamesPlayed FROM accounts WHERE accID=" . $accountID . ";";
+  $query = "SELECT accid, name, lifetimePoints, gamesWon, publicProfile, publicFriends, publicAchievements, highestScore, gamesPlayed FROM accounts WHERE accID=" . $user_id . ";";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -63,10 +63,10 @@ function getUserData($accountID)
   return mysqli_fetch_row($response);
 }
 
-function getUsername($accountID)
+function getUsername($user_id)
 {
   global $db;
-  $query = "SELECT name FROM accounts WHERE accID=" . $accountID . ";";
+  $query = "SELECT name FROM accounts WHERE accID=" . $user_id . ";";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -111,13 +111,13 @@ function newUser($username, $password, $email)
   return "User created";
 }
 
-function newSteamGame($steamGame)
+function newSteamGame($steam_game)
 {
   global $db;
   $query = "INSERT INTO steamGames (steamID, type, name, detailedDescription, shortDescription, headerImage, website, genres, categories, releaseDate, background, mature) VALUES
-   (" . $steamGame['steam_appid'] . ", '" . $steamGame['type'] . "', '" . $steamGame['name'] . "', '" . $steamGame['detailed_description'] . "', '" . $steamGame['short_description'] . "', '"
-   . $steamGame['header_image'] . "', '" . $steamGame['website'] . "', '" . $steamGame['genres'] . "', '" . $steamGame['categories'] . "', '" . $steamGame['release_date'] . "', '" 
-   . $steamGame['background'] . "', " . $steamGame['mature'] . ");";
+   (" . $steam_game['steam_appid'] . ", '" . $steam_game['type'] . "', '" . $steam_game['name'] . "', '" . $steam_game['detailed_description'] . "', '" . $steam_game['short_description'] . "', '"
+   . $steam_game['header_image'] . "', '" . $steam_game['website'] . "', '" . $steam_game['genres'] . "', '" . $steam_game['categories'] . "', '" . $steam_game['release_date'] . "', '" 
+   . $steam_game['background'] . "', " . $steam_game['mature'] . ");";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -146,6 +146,39 @@ function addFriend($username, $friendUsername)
   return "Friend Added";
 }
 
+function addLobby()
+{
+  global $db;
+  $lobby_id = rand(1000, 9999);
+  $query = "INSERT INTO lobbies (lobbyID, status) VALUES (" . $lobby_id . ", 0);";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+
+  return $lobby_id;
+}
+
+function removeLobby($lobby_id)
+{
+  global $db;
+  $query = "DELETE FROM lobbies WHERE lobbyID = " . $lobby_id . ";";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+
+  return "" . $lobby_id . " successfully deleted";
+}
+
 function addAchievement($username, $achievement)
 {
   global $db;
@@ -162,10 +195,10 @@ function addAchievement($username, $achievement)
   return "Achievement Added";
 }
 
-function getSteamGame($steamID)
+function getSteamGame($steam_id)
 {
   global $db;
-  $query = "SELECT * FROM steamGames WHERE steamID=" . $steamID . ";";
+  $query = "SELECT * FROM steamGames WHERE steamID=" . $steam_id . ";";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -234,13 +267,13 @@ function requestProcessor($request)
       return doValidate($request['sessionId']);
       break;
     case "get_friends":
-      return getFriends($request['accountID']);
+      return getFriends($request['user_id']);
       break;
     case "get_user_data":
-      return getUserData($request['accountID']);
+      return getUserData($request['user_id']);
       break;
     case "get_username_from_id":
-      return getUsername($request['accountID']);
+      return getUsername($request['user_id']);
       break;
     case "get_account_id":
       return getID($request['username']);
@@ -249,10 +282,10 @@ function requestProcessor($request)
       return newUser($request['username'], $request['password'], $request['email']);
       break;
     case "new_steam_game":
-      return newSteamGame($request['steamGame']);
+      return newSteamGame($request['steam_game']);
       break;
     case "get_steam_game":
-      return getSteamGame($request['steamID']);
+      return getSteamGame($request['steam_id']);
       break;
     case "add_friend":
       return addFriend($request['username'], $request['friendUsername']);
@@ -261,7 +294,16 @@ function requestProcessor($request)
       return addAchievement($request['username'], $request['achievement']);
       break;
     case "get_achievements":
-      return getAchievements($request['accountID']);
+      return getAchievements($request['user_id']);
+      break;
+    case "lobby_add":
+      return addLobby();
+      break;
+    case "lobby_remove":
+      return removeLobby($request['lobby_id']);
+      break;
+    case "lobby_update_status":
+      return updateStatus($request['lobby_id'], $request['status']);
       break;
   }
   return array("returnCode" => '0', 'message'=>"Server received request and processed");
