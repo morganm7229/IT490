@@ -322,7 +322,7 @@ function requestProcessor($request)
       return updateStatus($request['lobby_id'], $request['status']);
       break;
   }
-  return array("returnCode" => '0', 'message'=>"Server received request and processed");
+  return array("returnCode" => '0', 'message'=>"Server received request and processed, no type matched");
 }
 
 $server = new rabbitMQServer("testRabbitMQ.ini","testServer");
