@@ -15,9 +15,12 @@ else
 }
 
 $request = array();
-$request['type'] = "get_user_data";
-$request['username'] = "steve";
-$request['password'] = "password";
+$request['type'] = "lobby_update_status";
+$request['lobby_id'] = 6099;
+$request['status'] = 0;
+$request['username'] = "Steve";
+$request['password'] = "newTest";
+$request['email'] = "steve@steve.steve";
 $request['message'] = $msg;
 $request['accountID'] = 1;
 $response = $client->send_request($request);
