@@ -361,6 +361,22 @@ function updateStats($user_id, $win, $points)
   return "Stats Updated for " . $user_id . "";
 }
 
+function getAllSteamGames()
+{
+  global $db;
+  $query = "SELECT steamID, shortDescription, genres, categories, background FROM steamGames;";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+
+  return mysqli_fetch_all($response);
+}
+
 function requestProcessor($request)
 {
 
@@ -398,6 +414,9 @@ function requestProcessor($request)
       break;
     case "get_steam_game":
       return getSteamGame($request['steam_id']);
+      break;
+    case "get_all_steam_games":
+      return getAllSteamGames();
       break;
     case "add_friend":
       return addFriend($request['username'], $request['friendUsername']);
