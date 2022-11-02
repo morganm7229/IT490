@@ -28,7 +28,7 @@ function getFriends($user_id)
     exit(0);
   }
 
-  return mysqli_fetch_all($response)[0];
+  return mysqli_fetch_all($response);
 }
 
 function getAchievements($user_id)
@@ -44,7 +44,7 @@ function getAchievements($user_id)
     exit(0);
   }
 
-  return mysqli_fetch_all($response)[0];
+  return mysqli_fetch_all($response);
 }
 
 function getUserData($user_id)
@@ -60,7 +60,7 @@ function getUserData($user_id)
     exit(0);
   }
 
-  return mysqli_fetch_row($response);
+  return mysqli_fetch_all($response);
 }
 
 function getUsername($user_id)
@@ -76,7 +76,7 @@ function getUsername($user_id)
     exit(0);
   }
 
-  return mysqli_fetch_row($response);
+  return mysqli_fetch_all($response);
 }
 
 function getID($username)
@@ -92,7 +92,7 @@ function getID($username)
     exit(0);
   }
 
-  return mysqli_fetch_row($response);
+  return mysqli_fetch_all($response);
 }
 
 function newUser($username, $password, $email)
@@ -208,7 +208,7 @@ function getSteamGame($steam_id)
     exit(0);
   }
 
-  return mysqli_fetch_row($response);
+  return mysqli_fetch_all($response);
 }
 
 function updateStatus($lobby_id, $status)
@@ -291,6 +291,22 @@ function newSessionID($username, $session_id)
   return "Session ID updated";
 }
 
+function getLobbies()
+{
+  global $db;
+  $query = "SELECT * FROM lobbies;";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+
+  return mysqli_fetch_all($response);
+}
+
 error_reporting(E_ALL);
 ini_set('display_errors', 'On');
 require_once('path.inc');
@@ -327,6 +343,22 @@ function doLogin($username,$password)
     echo "doLogin()";
     return true;
     //return false if not valid
+}
+
+function updateStats($user_id, $win, $points)
+{
+  global $db;
+  $query = "UPDATE accounts SET gamesWon = gamesWon + " . $win . ", lifetimePoints = lifetimePoints + " . $points . ", gamesPlayed = gamesPlayed + 1, WHERE accID = " . $user_id . ";";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+
+  return "Stats Updated for " . $user_id . "";
 }
 
 function requestProcessor($request)
@@ -385,6 +417,9 @@ function requestProcessor($request)
     case "lobby_update_status":
       return updateStatus($request['lobby_id'], $request['status']);
       break;
+    case "get_lobbies":
+      return getLobbies();
+      break;
     case "user_update_profile_public":
       return updateProfilePublicity($request['user_id'], $request['public']);
       break;
@@ -396,6 +431,9 @@ function requestProcessor($request)
       break;
     case "new_session_id":
       return newSessionID($request['username'], $request['session_id']);
+      break;
+    case "update_stats":
+      return updateStats($request['user_id'], $request['win'], $request['points']);
       break;
   }
   return array("returnCode" => '0', 'message'=>"Server received request and processed, no type matched");
