@@ -227,6 +227,70 @@ function updateStatus($lobby_id, $status)
   return "" . $lobby_id . " successfully changed to status " . $status . "";
 }
 
+function updateProfilePublicity($user_id, $public)
+{
+  global $db;
+  $query = "UPDATE accounts SET publicProfile = " . $public . " WHERE accID = " . $user_id . ";";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+
+  return "" . $user_id . " successfully changed profile publicity to status " . $public . "";
+}
+
+function updateAchievementsPublicity($user_id, $public)
+{
+  global $db;
+  $query = "UPDATE accounts SET publicAchievements = " . $public . " WHERE accID = " . $user_id . ";";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+
+  return "" . $user_id . " successfully changed achievement publicity to status " . $public . "";
+}
+
+function updateFriendsPublicity($user_id, $public)
+{
+  global $db;
+  $query = "UPDATE accounts SET publicFriends = " . $public . " WHERE accID = " . $user_id . ";";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+
+  return "" . $user_id . " successfully changed friends publicity to status " . $public . "";
+}
+
+function newSessionID($username, $session_id)
+{
+  global $db;
+  $query = "UPDATE accounts SET sessionID= '" . $session_id . "', lastLogin= NOW() WHERE username = '" . $username . "';";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+
+  return "Session ID updated";
+}
+
 error_reporting(E_ALL);
 ini_set('display_errors', 'On');
 require_once('path.inc');
@@ -298,7 +362,7 @@ function requestProcessor($request)
       return newUser($request['username'], $request['password'], $request['email']);
       break;
     case "new_steam_game":
-      return newSteamGame($request['steam_game']);
+      return newSteamGame($request);
       break;
     case "get_steam_game":
       return getSteamGame($request['steam_id']);
@@ -320,6 +384,18 @@ function requestProcessor($request)
       break;
     case "lobby_update_status":
       return updateStatus($request['lobby_id'], $request['status']);
+      break;
+    case "user_update_profile_public":
+      return updateProfilePublicity($request['user_id'], $request['public']);
+      break;
+    case "user_update_achievements_public":
+      return updateAchievementsPublicity($request['user_id'], $request['public']);
+      break;
+    case "user_update_friends_public":
+      return updateFriendsPublicity($request['user_id'], $request['public']);
+      break;
+    case "new_session_id":
+      return newSessionID($request['username'], $request['session_id']);
       break;
   }
   return array("returnCode" => '0', 'message'=>"Server received request and processed, no type matched");
