@@ -319,7 +319,7 @@ function doLogin($username,$password)
     
     echo "successfully connected to database".PHP_EOL;
     
-    $query = "SELECT * FROM users WHERE username='$username' AND password='$password';";
+    $query = "SELECT * FROM accounts WHERE name='$username' AND password='$password';";
     
     $response = $db->query($query);
     if ($db->errno != 0)
