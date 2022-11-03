@@ -15,14 +15,17 @@ else
 }
 
 $request = array();
-$request['type'] = "lobby_update_status";
+$request['type'] = "update_stats";
 $request['lobby_id'] = 6099;
 $request['status'] = 0;
+$request['win'] = 1;
+$request['points'] = 0;
 $request['username'] = "Steve";
 $request['password'] = "newTest";
 $request['email'] = "steve@steve.steve";
 $request['message'] = $msg;
-$request['accountID'] = 1;
+$request['user_id'] = 3;
+$request['steam_id'] = 570;
 $response = $client->send_request($request);
 //$response = $client->publish($request);
 

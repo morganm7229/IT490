@@ -34,7 +34,7 @@ function getFriends($user_id)
 function getAchievements($user_id)
 {
   global $db;
-  $query = "SELECT achievement FROM playerAchievements WHERE accID=" . $user_id . ";";
+  $query = "SELECT achievement FROM playerAchievements WHERE name=" . $user_id . ";";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -60,7 +60,7 @@ function getUserData($user_id)
     exit(0);
   }
 
-  return mysqli_fetch_all($response);
+  return mysqli_fetch_id($response);
 }
 
 function getUsername($user_id)
@@ -76,7 +76,7 @@ function getUsername($user_id)
     exit(0);
   }
 
-  return mysqli_fetch_all($response);
+  return mysqli_fetch_id($response);
 }
 
 function getID($username)
@@ -92,7 +92,7 @@ function getID($username)
     exit(0);
   }
 
-  return mysqli_fetch_all($response);
+  return mysqli_fetch_row($response);
 }
 
 function newUser($username, $password, $email)
@@ -114,10 +114,13 @@ function newUser($username, $password, $email)
 function newSteamGame($steam_game)
 {
   global $db;
-  $query = "INSERT INTO steamGames (steamID, type, name, detailedDescription, shortDescription, headerImage, website, genres, categories, releaseDate, background, mature) VALUES
-   (" . $steam_game['steam_appid'] . ", '" . $steam_game['type'] . "', '" . $steam_game['name'] . "', '" . $steam_game['detailed_description'] . "', '" . $steam_game['short_description'] . "', '"
+  $query = "INSERT INTO steamGames (steamID, type, name, shortDescription, headerImage, website, genres, categories, releaseDate, background, mature) VALUES
+   (" . $steam_game['steam_appid'] . ", '" . $steam_game['type'] . "', '" . $steam_game['name'] . "', '" . $steam_game['short_description'] . "', '"
    . $steam_game['header_image'] . "', '" . $steam_game['website'] . "', '" . $steam_game['genres'] . "', '" . $steam_game['categories'] . "', '" . $steam_game['release_date'] . "', '" 
-   . $steam_game['background'] . "', " . $steam_game['mature'] . ");";
+   . $steam_game['background'] . "', " . $steam_game['mature'] . ")
+   ON DUPLICATE KEY UPDATE type = '" . $steam_game['type'] . "', name = '" . $steam_game['name'] . "', shortDescription = '" . $steam_game['short_description'] . "', headerImage = '"
+   . $steam_game['header_image'] . "', website = '" . $steam_game['website'] . "', genres = '" . $steam_game['genres'] . "', categories = '" . $steam_game['categories'] . "', releaseDate = '" . $steam_game['release_date'] . "', background = '" 
+   . $steam_game['background'] . "', mature = " . $steam_game['mature'] . ";";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -182,7 +185,8 @@ function removeLobby($lobby_id)
 function addAchievement($username, $achievement)
 {
   global $db;
-  $query = "INSERT INTO playerAchievements (username, achievement) VALUES ('" . $username . "', '" . $achievement . "');";
+  $query = "INSERT INTO playerAchievements (username, achievement) VALUES ('" . $username . "', '" . $achievement . "')
+            ON DUPLICATE KEY UPDATE username = username;";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -199,6 +203,9 @@ function getSteamGame($steam_id)
 {
   global $db;
   $query = "SELECT * FROM steamGames WHERE steamID=" . $steam_id . ";";
+  $returnArray = array();
+  //make an array called tempArray
+  $tempArray = array();
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -208,7 +215,7 @@ function getSteamGame($steam_id)
     exit(0);
   }
 
-  return mysqli_fetch_all($response);
+  return mysqli_fetch_row($response);
 }
 
 function updateStatus($lobby_id, $status)
@@ -348,7 +355,8 @@ function doLogin($username,$password)
 function updateStats($user_id, $win, $points)
 {
   global $db;
-  $query = "UPDATE accounts SET gamesWon = gamesWon + " . $win . ", lifetimePoints = lifetimePoints + " . $points . ", gamesPlayed = gamesPlayed + 1, WHERE accID = " . $user_id . ";";
+  $query = "UPDATE accounts SET gamesWon = gamesWon + " . $win . ", lifetimePoints = lifetimePoints + " . $points . ", gamesPlayed = gamesPlayed + 1 WHERE accID = " . $user_id . ";";
+  //UPDATE accounts SET gamesWon = gamesWon + 0, lifetimePoints = lifetimePoints + 0, gamesPlayed = gamesPlayed + 1 WHERE accID = 1;
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -357,8 +365,49 @@ function updateStats($user_id, $win, $points)
     echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
     exit(0);
   }
-
+  checkForAchievements($user_id);
   return "Stats Updated for " . $user_id . "";
+}
+
+function checkForAchievements($user_id)
+{
+  global $db;
+  $query = "SELECT name, gamesWon, gamesPlayed, lifetimePoints FROM accounts WHERE accID = " . $user_id . ";";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+  
+  $responseArray = mysqli_fetch_row($response);
+  if($responseArray[1] >= 1)
+  {
+    addAchievement($responseArray[0], "Won a Game!");
+  }
+  if($responseArray[1] >= 5)
+  {
+    addAchievement($responseArray[0], "Won 5 Games!");
+  }
+  if($responseArray[2] >= 1)
+  {
+    addAchievement($responseArray[0], "Played your first game!");
+  }
+  if($responseArray[2] >= 10)
+  {
+    addAchievement($responseArray[0], "Played 10 games!");
+  }
+  if($responseArray[3] >= 1)
+  {
+    addAchievement($responseArray[0], "Scored your first point!");
+  }
+  if($responseArray[3] >= 50)
+  {
+    addAchievement($responseArray[0], "Scored at least 50 points!");
+  }
+  echo $responseArray[0];
 }
 
 function getAllSteamGames()
@@ -425,7 +474,7 @@ function requestProcessor($request)
       return addAchievement($request['username'], $request['achievement']);
       break;
     case "get_achievements":
-      return getAchievements($request['user_id']);
+      return getAchievements($request['username']);
       break;
     case "lobby_add":
       return addLobby();
