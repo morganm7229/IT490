@@ -31,10 +31,10 @@ function getFriends($user_id)
   return mysqli_fetch_all($response);
 }
 
-function getAchievements($username)
+function getAchievements($user_id)
 {
   global $db;
-  $query = "SELECT achievement FROM playerAchievements WHERE username= '" . $username . "';";
+  $query = "SELECT achievement FROM playerAchievements WHERE accID=" . $user_id . ";";
   $returnArray = array();
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -47,13 +47,13 @@ function getAchievements($username)
   {
     $returnArray[] = $row['achievement'];
   }
-  return $returnArray;
+  return json_encode($returnArray);
 }
 
 function getUserData($user_id)
 {
   global $db;
-  $query = "SELECT accid, name, lifetimePoints, gamesWon, publicProfile, publicFriends, publicAchievements, highestScore, gamesPlayed FROM accounts WHERE accID=" . $user_id . ";";
+  $query = "SELECT accid, name, lifetimePoints, gamesWon, publicProfile, publicFriends, publicAchievements, highestScore, gamesPlayed FROM accounts WHERE accid=" . $user_id . ";";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -63,7 +63,9 @@ function getUserData($user_id)
     exit(0);
   }
 
-  return mysqli_fetch_id($response);
+  $returnArray = json_encode(mysqli_fetch_row($response));
+  echo $returnArray;
+  return $returnArray;
 }
 
 function getUsername($user_id)
@@ -501,7 +503,7 @@ function requestProcessor($request)
       return addAchievement($request['username'], $request['achievement']);
       break;
     case "get_achievements":
-      return getAchievements($request['username']);
+      return getAchievements($request['user_id']);
       break;
     case "lobby_add":
       return addLobby();

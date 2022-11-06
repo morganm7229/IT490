@@ -39,6 +39,8 @@ class rabbitMQServer
 	function process_message($msg)
 	{
 		echo $msg->getRoutingKey();
+		echo $msg->getBody();
+		echo "DOOGIS";
 		// send the ack to clear the item from the queue
 		if ($msg->getRoutingKey() !== "*")
     {
