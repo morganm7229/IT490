@@ -31,11 +31,11 @@ function getFriends($user_id)
   return mysqli_fetch_all($response);
 }
 
-function getAchievements($user_id)
+function getAchievements($username)
 {
   global $db;
-  $query = "SELECT achievement FROM playerAchievements WHERE name=" . $user_id . ";";
-
+  $query = "SELECT achievement FROM playerAchievements WHERE username= '" . $username . "';";
+  $returnArray = array();
   $response = $db->query($query);
   if ($db->errno != 0)
   {
@@ -43,8 +43,11 @@ function getAchievements($user_id)
     echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
     exit(0);
   }
-
-  return mysqli_fetch_all($response);
+  while ($row = $response->fetch_assoc())
+  {
+    $returnArray[] = $row['achievement'];
+  }
+  return $returnArray;
 }
 
 function getUserData($user_id)
@@ -82,7 +85,7 @@ function getUsername($user_id)
 function getID($username)
 {
   global $db;
-  $query = "SELECT accID FROM accounts WHERE accID=" . $username . ";";
+  $query = "SELECT accID FROM accounts WHERE name='" . $username . "';";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -92,13 +95,14 @@ function getID($username)
     exit(0);
   }
 
-  return mysqli_fetch_row($response);
+  return mysqli_fetch_row($response)[0];
 }
 
-function newUser($username, $password, $email)
+function newUser($username, $password)
 {
   global $db;
-  $query = "INSERT INTO accounts (name, lifetimePoints, gamesWon, publicProfile, publicFriends, publicAchievements, email, password, highestScore, gamesPlayed) VALUES ('" . $username . "', 0, 0, 0, 0, 0, '" . $email . "', '" . $password . "', 0, 0);";
+
+  $query = "SELECT COUNT(*) FROM accounts WHERE name='" . $username . "';";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -108,7 +112,29 @@ function newUser($username, $password, $email)
     exit(0);
   }
 
-  return "User created";
+  $response = mysqli_fetch_row($response)[0];
+  echo $response;
+  if ($response == 0)
+  {
+    echo ("thank god this works");
+    $query = "INSERT INTO accounts (name, lifetimePoints, gamesWon, publicProfile, publicFriends, publicAchievements, email, password, highestScore, gamesPlayed) VALUES ('" . $username . "', 0, 0, 0, 0, 0, '" . "placeholder" . "', '" . $password . "', 0, 0);";
+
+    $response = $db->query($query);
+    if ($db->errno != 0)
+    {
+      echo "failed to execute query:".PHP_EOL;
+      echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+      exit(0);
+    }
+  
+    return "succ";
+  }
+  else
+  {
+    echo "false";
+    return "failed";
+  }
+
 }
 
 function newSteamGame($steam_game)
@@ -320,13 +346,13 @@ require_once('path.inc');
 require_once('get_host_info.inc');
 require_once('rabbitMQLib.inc');
 
-function doLogin($username,$password)
+function doLogin($username)
 {
     global $db;
     
     echo "successfully connected to database".PHP_EOL;
     
-    $query = "SELECT * FROM accounts WHERE name='$username' AND password='$password';";
+    $query = "SELECT password FROM accounts WHERE name='$username';";
     
     $response = $db->query($query);
     if ($db->errno != 0)
@@ -336,19 +362,19 @@ function doLogin($username,$password)
             exit(0);
     }
     
-    $numrows = mysqli_num_rows($response);
     
-    if($numrows != 0)
-    {
-    echo "Auth";
-        return "Auth";
-    }else{
-      return 0;
-    }
+    
+    // if($numrows != 0)
+    // {
+    // echo "Auth";
+    //     return "Auth";
+    // }else{
+    //   return 0;
+    // }
     // lookup username in databas
     // check password
     echo "doLogin()";
-    return true;
+    return mysqli_fetch_row($response)[0];
     //return false if not valid
 }
 
@@ -407,13 +433,12 @@ function checkForAchievements($user_id)
   {
     addAchievement($responseArray[0], "Scored at least 50 points!");
   }
-  echo $responseArray[0];
 }
 
 function getAllSteamGames()
 {
   global $db;
-  $query = "SELECT steamID, shortDescription, genres, categories, background FROM steamGames;";
+  $query = "SELECT steamID, name, shortDescription, genres, categories, background FROM steamGames;";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -422,8 +447,10 @@ function getAllSteamGames()
     echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
     exit(0);
   }
-
-  return mysqli_fetch_all($response);
+  $stuffToReturn = mysqli_fetch_all($response);
+  $stuffToReturn = json_encode($stuffToReturn, JSON_FORCE_OBJECT);
+  echo $stuffToReturn;
+  return $stuffToReturn;
 }
 
 function requestProcessor($request)
@@ -438,7 +465,7 @@ function requestProcessor($request)
   switch ($request['type'])
   {
     case "login":
-      return doLogin($request['username'],$request['password']);
+      return doLogin($request['username']);
       break;
     case "validate_session":
       return doValidate($request['sessionId']);
@@ -456,7 +483,7 @@ function requestProcessor($request)
       return getID($request['username']);
       break;
     case "new_user":
-      return newUser($request['username'], $request['password'], $request['email']);
+      return newUser($request['username'], $request['password']);
       break;
     case "new_steam_game":
       return newSteamGame($request);

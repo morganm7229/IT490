@@ -15,7 +15,7 @@ else
 }
 
 $request = array();
-$request['type'] = "update_stats";
+$request['type'] = "get_steam_game";
 $request['lobby_id'] = 6099;
 $request['status'] = 0;
 $request['win'] = 1;
