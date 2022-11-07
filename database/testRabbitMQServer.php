@@ -376,7 +376,11 @@ function doLogin($username)
     // lookup username in databas
     // check password
     echo "doLogin()";
-    return mysqli_fetch_row($response)[0];
+    $response =["hash" => mysqli_fetch_row($response)[0]];
+    echo json_encode($response);
+    return json_encode($response);
+
+    
     //return false if not valid
 }
 
