@@ -53,7 +53,7 @@ function getAchievements($user_id)
 function getUserData($user_id)
 {
   global $db;
-  $query = "SELECT accid, name, lifetimePoints, gamesWon, publicProfile, publicFriends, publicAchievements, highestScore, gamesPlayed FROM accounts WHERE accid=" . $user_id . ";";
+  $query = "SELECT accID, name, lifetimePoints, gamesWon, publicProfile, publicFriends, publicAchievements, highestScore, gamesPlayed FROM accounts WHERE accid=" . $user_id . ";";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -63,9 +63,20 @@ function getUserData($user_id)
     exit(0);
   }
 
-  $returnArray = json_encode(mysqli_fetch_row($response));
-  echo $returnArray;
-  return $returnArray;
+  $response = $response->fetch_assoc();
+
+  $response = ["id" => $response["accID"], 
+              "name" => $response["name"], 
+              "lifetimePoints" => $response["lifetimePoints"], 
+              "gamesWon" => $response["gamesWon"], 
+              "publicProfile" => $response["publicProfile"], 
+              "publicFriends" => $response["publicFriends"], 
+              "publicAchievements" => $response["publicAchievements"], 
+              "highestScore" => $response["highestScore"], 
+              "gamesPlayed" => $response["gamesPlayed"]];
+
+  echo json_encode($response);
+  return json_encode($response);
 }
 
 function getUsername($user_id)
@@ -96,8 +107,9 @@ function getID($username)
     echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
     exit(0);
   }
-
-  return mysqli_fetch_row($response)[0];
+  $response = ["id" => mysqli_fetch_row($response)[0]];
+  echo json_encode($response);
+  return json_encode($response);
 }
 
 function newUser($username, $password)
@@ -190,8 +202,9 @@ function addLobby()
     echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
     exit(0);
   }
-
-  return $lobby_id;
+  $response = ["lobby_id" => $lobby_id];
+  echo json_encode($response);
+  return json_encode($response);
 }
 
 function removeLobby($lobby_id)
@@ -354,7 +367,7 @@ function doLogin($username)
     
     echo "successfully connected to database".PHP_EOL;
     
-    $query = "SELECT password FROM accounts WHERE name='$username';";
+    $query = "SELECT password, accID FROM accounts WHERE name='$username';";
     
     $response = $db->query($query);
     if ($db->errno != 0)
@@ -376,7 +389,8 @@ function doLogin($username)
     // lookup username in databas
     // check password
     echo "doLogin()";
-    $response =["hash" => mysqli_fetch_row($response)[0]];
+    $response = $response->fetch_assoc();
+    $response =["hash" => $response["password"], "id" => $response["accID"]];
     echo json_encode($response);
     return json_encode($response);
 
