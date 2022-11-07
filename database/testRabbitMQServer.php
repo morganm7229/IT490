@@ -164,7 +164,7 @@ function newSteamGame($steam_game)
 function addFriend($username, $friendUsername)
 {
   global $db;
-  $query = "INSERT INTO friends (username, friendUsername) VALUES ('" . $username . "', '" . $friendUsername . "');";
+  $query = "INSERT INTO friends (accID, friendID) VALUES (" . $username . ", " . $friendUsername . ");";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -497,7 +497,7 @@ function requestProcessor($request)
       return getAllSteamGames();
       break;
     case "add_friend":
-      return addFriend($request['username'], $request['friendUsername']);
+      return addFriend($request['user_id'], $request['friend_id']);
       break;
     case "add_achievement":
       return addAchievement($request['username'], $request['achievement']);
