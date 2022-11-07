@@ -210,11 +210,11 @@ function removeLobby($lobby_id)
   return "" . $lobby_id . " successfully deleted";
 }
 
-function addAchievement($username, $achievement)
+function addAchievement($user_id, $achievement)
 {
   global $db;
-  $query = "INSERT INTO playerAchievements (username, achievement) VALUES ('" . $username . "', '" . $achievement . "')
-            ON DUPLICATE KEY UPDATE username = username;";
+  $query = "INSERT INTO playerAchievements (accID, achievement) VALUES (" . $user_id . ", '" . $achievement . "')
+            ON DUPLICATE KEY UPDATE accID = accID;";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -400,7 +400,7 @@ function updateStats($user_id, $win, $points)
 function checkForAchievements($user_id)
 {
   global $db;
-  $query = "SELECT name, gamesWon, gamesPlayed, lifetimePoints FROM accounts WHERE accID = " . $user_id . ";";
+  $query = "SELECT accID, gamesWon, gamesPlayed, lifetimePoints FROM accounts WHERE accID = " . $user_id . ";";
 
   $response = $db->query($query);
   if ($db->errno != 0)
