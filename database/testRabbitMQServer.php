@@ -47,6 +47,8 @@ function getAchievements($user_id)
   {
     $returnArray[] = $row['achievement'];
   }
+
+  echo json_encode($returnArray);
   return json_encode($returnArray);
 }
 
@@ -92,7 +94,9 @@ function getUsername($user_id)
     exit(0);
   }
 
-  return mysqli_fetch_id($response);
+  $response = $response->fetch_assoc();
+  $response = ["username" => $response["name"]];
+  return json_encode($response);
 }
 
 function getID($username)
@@ -176,7 +180,7 @@ function newSteamGame($steam_game)
 function addFriend($username, $friendUsername)
 {
   global $db;
-  $query = "INSERT INTO friends (accID, friendID) VALUES (" . $username . ", " . $friendUsername . ");";
+  $query = "INSERT INTO friends VALUES (" . $username . ", " . $friendUsername . ");";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -515,7 +519,7 @@ function requestProcessor($request)
       return getAllSteamGames();
       break;
     case "add_friend":
-      return addFriend($request['user_id'], $request['friend_id']);
+      return addFriend($request['username'], $request['friend_name']);
       break;
     case "add_achievement":
       return addAchievement($request['username'], $request['achievement']);
