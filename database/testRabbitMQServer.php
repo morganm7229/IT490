@@ -18,7 +18,7 @@ echo "successfully connected to database".PHP_EOL;
 function getFriends($user_id)
 {
   global $db;
-  $query = "SELECT friendID FROM friends WHERE accID=" . $user_id . ";";
+  $query = "SELECT friendID, friendUsername FROM friends WHERE accID=" . $user_id . ";";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -27,8 +27,12 @@ function getFriends($user_id)
     echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
     exit(0);
   }
-
-  return mysqli_fetch_all($response);
+  while ($row = $response->fetch_assoc())
+  {
+    $returnArray[] = ["friend_username" => $row['friendUsername'], "friend_id" => $row['friendID']];
+  }
+  echo json_encode($returnArray);
+  return json_encode($returnArray);
 }
 
 function getAchievements($user_id)
@@ -177,10 +181,10 @@ function newSteamGame($steam_game)
   return "Steam Game Data created";
 }
 
-function addFriend($username, $friendUsername)
+function addFriend($user_id, $friendUsername)
 {
   global $db;
-  $query = "INSERT INTO friends VALUES (" . $username . ", " . $friendUsername . ");";
+  $query = "SELECT accID FROM accounts WHERE name = '". $friendUsername . "';";
 
   $response = $db->query($query);
   if ($db->errno != 0)
@@ -189,8 +193,24 @@ function addFriend($username, $friendUsername)
     echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
     exit(0);
   }
+  if ($response->num_rows == 0)
+  {
+    echo json_encode(["status" => "failed"]) . PHP_EOL;
+    return json_encode(["status" => "failed"]);
+  }
+  $friend_id = mysqli_fetch_row($response)[0];
 
-  return "Friend Added";
+  $query = "INSERT INTO friends (accID, friendID, friendUsername) VALUES (" . $user_id . ", " . $friend_id . ", '" . $friendUsername . "') ON DUPLICATE KEY UPDATE friendUsername = '" . $friendUsername . "';";
+
+  $response = $db->query($query);
+  if ($db->errno != 0)
+  {
+    echo "failed to execute query:".PHP_EOL;
+    echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
+    exit(0);
+  }
+  echo json_encode(["status" => "success"]) . PHP_EOL;
+  return json_encode(["status" => "success"]);
 }
 
 function addLobby()
@@ -355,8 +375,12 @@ function getLobbies()
     echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
     exit(0);
   }
-
-  return mysqli_fetch_all($response);
+  while ($row = mysqli_fetch_row($response))
+  {
+    $returnArray[] = $row;
+  }
+  echo json_encode($returnArray);
+  return json_encode($returnArray);
 }
 
 error_reporting(E_ALL);
@@ -519,7 +543,7 @@ function requestProcessor($request)
       return getAllSteamGames();
       break;
     case "add_friend":
-      return addFriend($request['username'], $request['friend_name']);
+      return addFriend($request['user_id'], $request['friend_name']);
       break;
     case "add_achievement":
       return addAchievement($request['username'], $request['achievement']);
