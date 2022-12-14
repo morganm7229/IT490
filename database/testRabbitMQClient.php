@@ -15,7 +15,7 @@ else
 }
 
 $request = array();
-$request['type'] = "get_steam_game";
+$request['type'] = " jksadhgjkhasdlghjlasdkhgkj,asdhjgklasdhjgklashdjklghasdjklgh";
 $request['lobby_id'] = 6099;
 $request['status'] = 0;
 $request['win'] = 1;
