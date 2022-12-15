@@ -38,13 +38,15 @@ class rabbitMQServer
 
 	function process_message($msg)
 	{
+		echo "DOOGIS";
 		echo $msg->getRoutingKey();
+		echo "DOOGIS";
 		echo $msg->getBody();
 		echo "DOOGIS";
 		// send the ack to clear the item from the queue
 		if ($msg->getRoutingKey() !== "*")
     {
-      return;
+      //return;
     }
     $this->conn_queue->ack($msg->getDeliveryTag());
 		try

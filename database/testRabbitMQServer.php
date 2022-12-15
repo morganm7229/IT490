@@ -1,6 +1,8 @@
 #!/usr/bin/php
 
 <?php
+logMsg("started testRabbitMQServer");
+error_log(date("Y-m-d H:i:s"));
 $dbVars = parse_ini_file('database.ini');
 $dbIP = $dbVars['dbIP'];
 $dbUser = $dbVars['dbUser'];
@@ -14,6 +16,11 @@ if ($db->errno != 0)
   exit(0);
 }
 echo "successfully connected to database".PHP_EOL;
+
+function logMsg($msg)
+{
+  file_put_contents("log.log", date("Y-m-d H:i:s")." ".$msg.PHP_EOL, FILE_APPEND);
+}
 
 function getFriends($user_id)
 {
@@ -32,7 +39,7 @@ function getFriends($user_id)
     $returnArray[] = ["friend_username" => $row['friendUsername'], "friend_id" => $row['friendID']];
   }
   echo json_encode($returnArray);
-  return json_encode($returnArray);
+  return $returnArray;
 }
 
 function getAchievements($user_id)
@@ -260,7 +267,7 @@ function addAchievement($user_id, $achievement)
     echo __FILE__.':'.__LINE__.":error: ".$db->error.PHP_EOL;
     exit(0);
   }
-
+  logMsg("Achievement added for user with the ID " . $user_id . ": " . $achievement);
   return "Achievement Added";
 }
 
@@ -420,7 +427,7 @@ function doLogin($username)
     $response = $response->fetch_assoc();
     $response =["hash" => $response["password"], "id" => $response["accID"]];
     echo json_encode($response);
-    return json_encode($response);
+    return $response;
 
     
     //return false if not valid
@@ -500,18 +507,31 @@ function getAllSteamGames()
   echo $stuffToReturn;
   return $stuffToReturn;
 }
-
+//write a function that returns "pong"
+function doPing()
+{
+  echo("pong".PHP_EOL);
+  return json_encode("pong");
+}
 function requestProcessor($request)
 {
 
   echo "received request".PHP_EOL;
-  var_dump($request);
+  //$request = json_decode($request);
+  var_dump($request, true);
   if(!isset($request['type']))
   {
+    logMsg("ERROR: unsupported message type");
     return "ERROR: unsupported message type";
   }
+  logMsg("received request from client with request type: ".$request['type']);
+  echo ("received request from client with request type: ".$request['type'].PHP_EOL);
+  echo ($request . PHP_EOL);
   switch ($request['type'])
   {
+    case "ping":
+      return doPing();
+      break;
     case "login":
       return doLogin($request['username']);
       break;
@@ -580,6 +600,7 @@ function requestProcessor($request)
       break;
   }
   return array("returnCode" => '0', 'message'=>"Server received request and processed, no type matched");
+  logMsg("No Type Matched");
 }
 
 $server = new rabbitMQServer("testRabbitMQ.ini","testServer");
