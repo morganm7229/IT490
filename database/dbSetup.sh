@@ -6,7 +6,7 @@ echo "Done."
 
 echo "Setting up database..."
 # create random password
-PASSWDDB="quizDB$(openssl rand -base64 24)"
+PASSWDDB="$(openssl rand -base64 12)"
 
 MAINDB="quizDB"
 
@@ -14,7 +14,7 @@ echo "Please enter root user MySQL password!"
 mysql -uroot -p${rootpasswd} << EOF
   SET GLOBAL validate_password.policy=LOW;
   CREATE DATABASE ${MAINDB} /*\!40100 DEFAULT CHARACTER SET utf8 */;
-  CREATE USER ${MAINDB}@localhost IDENTIFIED BY '${PASSWDDB}';
+  CREATE USER ${MAINDB}@localhost IDENTIFIED WITH mysql_native_password BY '${PASSWDDB}';
   GRANT ALL PRIVILEGES ON ${MAINDB}.* TO '${MAINDB}'@'localhost';
 
   # Create tables
@@ -74,6 +74,10 @@ echo "dbIP=localhost" > database.ini
 echo "dbUser=$MAINDB" >> database.ini
 echo "dbPassword=$PASSWDDB" >> database.ini
 echo "dbName=$MAINDB" >> database.ini
+
+touch host.ini
+
+echo "Database setup complete."
 
 echo "Installing RabbitMQ..."
 apt-get install -y rabbitmq-server > /dev/null
