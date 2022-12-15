@@ -12,7 +12,6 @@ MAINDB="quizDB"
 
 echo "Please enter root user MySQL password!"
 mysql -uroot -p${rootpasswd} << EOF
-  SET GLOBAL validate_password.policy=LOW;
   CREATE DATABASE ${MAINDB} /*\!40100 DEFAULT CHARACTER SET utf8 */;
   CREATE USER ${MAINDB}@localhost IDENTIFIED WITH mysql_native_password BY '${PASSWDDB}';
   GRANT ALL PRIVILEGES ON ${MAINDB}.* TO '${MAINDB}'@'localhost';
